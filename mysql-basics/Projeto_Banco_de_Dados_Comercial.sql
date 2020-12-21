@@ -1,0 +1,2294 @@
+/* PASSO A PASSO MYSQL */
+
+/* Criação do Usuario para o Banco de dados: 
+Devemos entrar na MySQL 8.0 Command Line Client (prompt de Comando do MySQL) */
+
+/* Comando para criação de Usuario: create user (nome do usuario)% identified by '(senha)';*/
+
+create user usermysql@'%' identified by 'mysqlexample';
+
+/* Quando utilizamos o % em nosso código, estamos dizendo que
+este usuário poderá acessar o nosso banco a partir de qualquer
+host. Poderíamos ter limitado ao acesso do local apenas,
+substituindo o % por localhost */
+
+/* O usuário criado não possui nenhuma permissão. 
+Para o mesmo ter permissão devemos executar o seguinte comando: 
+grant all privileges on *.* to usermysql@'%' with grant option;*/
+
+grant all privileges on *.* to usermysql@'%' with grant option;
+
+/* O comando grant all, da acesso total ao usuario. Para revogar o acesso
+utilizamos o comando revoke all on *.* from usermysql;*/
+
+/* Niveis de acesso. Podemos limitar o usuario a niveis de acesso. */ 
+
+/*
+- Nivel global: 
+                grant all on *.* to usermysql@localhost;
+                revoke all on *.* from usermysql;
+				
+- Nivel dos banco de dados:
+				grant all to comercial.* to usermysql@localhost
+                revoke all on comercial.*;
+
+- Nivel das tabelas:
+                grant all on comercial.nome_tabela;
+                revoke all on comercial.nome_tabela;
+				
+- Nivel das Colunas:
+                grant select(nomecoluna1),
+                      insert(nomecoluna1),
+					  update(nomecoluna1)
+					  on comercial.nome_tabela
+					  to usermysql@localhost
+					  identified by senha;
+					  
+- Nivel stored routine: a rotina de alterar, criar rotina,
+executar e privilégios de concessão de opção aplica-se a
+stored procedures (procedimentos e funções).
+
+para rotinas: grant routine on comercial.* to usermysql@localhost;
+
+para procedures: grant execute on procedure comercial.nomeprocedure to usermysql@localhost;
+
+- Nivel proxy user: o privilégio de proxy permite que um usuário seja proxy de outro.
+O usuário externo de um outro host assume os privilégios de um usuário.
+                 grant PROXY on usermysql@localhost to 'usuarioexterno'@'hostexterno';
+*/
+
+/* Com o usuario criado, temos que acessa-lo. Para isso, digite
+SYSTEM mysql -u user -p e de enter, depois coloque a senha criada */
+
+SYSTEM mysql -u usermysql -p
+
+/* Para verificar todos os usuários criados no programa */
+
+select * from mysql.user;
+
+/* Para verificar se ocorreu a troca do usuario, de o seguinte comando */
+
+SELECT USER();
+
+/* 
+
+Ira informar o usuario da seguinte forma 
+
++---------------------+
+| USER()              |
++---------------------+
+| usermysql@localhost |
++---------------------+
+
+*/
+
+/* Criação do Banco de dados */
+
+create database comercial;
+
+/* Assim que criado, podemos verificar se o SGBD criou o mesmo e quais bancos de dados, 
+estão criados*/
+
+show databases;
+
+/*
+
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| comercial          |
+| mysql              |
+| test               |
++--------------------+
+
+*/
+
+/* Criado o banco de dados, devemos fazer o SGBD usar o mesmo para criação das tabelas, 
+utilizando o comando use */
+
+use comercial;
+
+/* Para verificar qual banco de dados está sendo utilizado, realizar o seguinte comando */
+
+select database();
+
+/*
+
++------------+
+| database() |
++------------+
+| comercial  |
++------------+
+
+*/
+
+/* Comandos para criar as tabelas */
+
+create table comclien(n_numeclien int not null auto_increment, c_codiclien varchar(10),c_nomeclien varchar(50),c_razaclien varchar(50),d_dataclien date,c_cnpjclien varchar(20),c_foneclien varchar(15),primary key (n_numeclien));
+ 
+create table comforne(n_numeforne int not null auto_increment,c_codiforne varchar(10),c_nomeforne varchar(50),c_razaforne varchar(50),c_foneforne varchar(15), primary key(n_numeforne));
+
+create table comprodu(n_numeprodu int not null auto_increment,c_codiprodu varchar(20),c_descprodu varchar(100),n_valoprodu float(10,2),c_situprodu varchar(1),n_numeforne int,primary key(n_numeprodu)); 
+
+create table comvenda(n_numevenda int not null auto_increment,c_codivenda varchar(10),n_numeclien int not null,n_numeforne int not null,n_numevende int not null,n_valovenda float(10,2),n_descvenda float(10,2),n_totavenda float(10,2),d_datavenda date,primary key(n_numevenda)); 
+
+create table comvende(n_numevende int not null auto_increment,c_codivende varchar(10),c_nomevende varchar(50),c_razavende varchar(50),c_fonevende varchar(20),n_porcvende float(10,2),primary key(n_numevende));
+
+create table comivenda(n_numeivenda int not null auto_increment,n_numevenda  int not null,n_numeprodu  int not null,n_valoivenda float(10,2),n_qtdeivenda int,n_descivenda float(10,2),primary key(n_numeivenda));
+
+create table comvendas(n_numevenda int not null auto_increment,c_codivenda varchar(10),n_numeclien int not null,n_numeforne int not null,n_numevende int not null,n_valovenda float(10,2),n_descvenda float(10,2),n_totavenda float(10,2),d_datavenda date,primary key(n_numevenda)); /* tabela gerada errada para didatica */
+
+/* Para verificar quais tabelas foram criadas no banco de dados comercial e se foram criadas */
+
+show tables;
+
+/*
+
++---------------------+
+| Tables_in_comercial |
++---------------------+
+| comclien            |
+| comforne            |
+| comivenda           |
+| comprodu            |
+| comvenda            |
+| comvendas           |
+| comvende            |
++---------------------+
+
+*/
+
+/* Tambem pode ser utilizado o comando describe. O mesmo irá detalhar todos os dados da tabela */
+
+desc comclien;
+
+/*
+
++-------------+-------------+------+-----+---------+----------------+
+| Field       | Type        | Null | Key | Default | Extra          |
++-------------+-------------+------+-----+---------+----------------+
+| n_numeclien | int(11)     | NO   | PRI | NULL    | auto_increment |
+| c_codiclien | varchar(10) | YES  |     | NULL    |                |
+| c_nomeclien | varchar(50) | YES  |     | NULL    |                |
+| c_razaclien | varchar(50) | YES  |     | NULL    |                |
+| d_dataclien | date        | YES  |     | NULL    |                |
+| c_cnpjclien | varchar(20) | YES  |     | NULL    |                |
+| c_foneclien | varchar(15) | YES  |     | NULL    |                |
++-------------+-------------+------+-----+---------+----------------+
+
+*/
+
+/* Realizado a criação das tabelas, vemos que a tabela comvenda, por exemplo, 
+possui campos de chaves primarias de outras tabelas. Para fazer o SGBD entender que esses campos criados
+são chaves estrangeiras, devemos criar as constraints. 
+Seria um código alternativo que linka um campo com outro, para no futuro podermos unir as tabelas.
+No MySQL Workbench, é criado essa relação assim que linkamos as tabelas com os conectores.
+Verificar o campo Foreign Keys. */
+
+alter table comvenda add constraint fk_comprodu_comforne foreign key(n_numeforne) references comforne(n_numeforne) on delete no action on update no action;
+
+alter table comvenda add constraint fk_comprodu_comvende foreign key(n_numevende) references comvende(n_numevende) on delete no action on update no action;
+
+alter table comvenda add constraint fk_comvenda_comclien foreign key(n_numeclien) references comclien(n_numeclien) on delete no action on update no action;
+
+alter table comivenda add constraint fk_comivenda_comprodu foreign key(n_numeprodu) references comprodu (n_numeprodu) on delete no action on update no action;
+
+alter table comivenda add constraint fk_comivenda_comvenda foreign key(n_numevenda) references comvenda (n_numevenda) on delete no action on update no action;
+
+/* Caso seja necessario criar novos campos nas tabelas, 
+podemos utilizar o comando alter table, para adicionar um novo campo na tabela  */
+
+alter table comclien add column c_cidaclien varchar(50);
+
+alter table comclien add column c_estclien varchar(50);
+
+alter table comclien add column c_estaclien varchar(50); 
+
+/* Caso seja necessario deletar um campo da tabela, podemos utilizar o comando alter table junto com o comando drop.*/
+
+alter table comclien drop column c_estclien;
+
+/* Caso seja necessario mudar o tipo do campo, de VARCHAR para NUM, 
+ou o tamanho do INT ou VARCHAR, usamos o comando modify  */
+
+alter table comclien modify column c_estaclien int;
+
+alter table comclien modify column c_estaclien varchar(100);
+
+/* para deletar uma tabela, usamos o comando drop somente. Sera deletado a tabela inteira */
+
+drop table comvendas;
+
+/* Inserção de dados nas tabelas é feito pelo comando Insert 
+(Tipos NUM não precisa de ' ', somente tipo DATE, CHAR e VARCHAR */
+
+insert into comclien(n_numeclien,c_codiclien,c_nomeclien,c_razaclien,d_dataclien,c_cnpjclien,c_foneclien,c_cidaclien,c_estaclien) values (1,'0001','AARONSON','AARONSON FURNITURE LTDA','2015-02-17','17.807.928/0001-85','(21) 8167-6584','QUEIMADOS','RJ');
+
+/* Alteração de dados nas tabelas é feito pelo comando update. 
+Usar sempre o where para indicar aonde será a alteração, se não, será alterado todos os registros da tabela. */
+
+update comclien set c_nomeclien = 'AARONSON FURNITURE' where n_numeclien = 1;
+
+/* Para salvar a alteração, usamos o comando commit logo após o update */
+
+commit;
+
+/* Para reverter a alteração, usamos o comando rollback logo após o update */
+
+rollback;
+
+/* Para excluir registros, usamos o comando delete. 
+Usar sempre o where para indicar aonde será a exclusão, se não, será alterado todos os registros da tabela. 
+Diferentemente do Drop, o comando delete mantem a tabela, mas só exclui os registros contidos nela */
+
+delete from comclien where n_numeclien = 1;
+
+/* Para salvar a alteração, usamos o comando commit logo após o delete */
+
+commit;
+
+/* Para reverter a alteração, usamos o comando rollback logo após o delete */
+
+rollback;
+
+/* Para deletar todos os objetos da tabela */
+
+delete from comclien;
+
+commit;
+
+/* Nunca se esqueça de criar as constraints de chave estrangeira das tabelas, 
+pois ao tentar excluir um registro, se houver uma constraint nela e ele estiver sendo utilizado em outra tabela, 
+o SGBD não deixará você excluí-lo com intuito de manter a integridade dos dados. */
+
+/* Para continuar o projeto, o autor do livro disponibilizou um codigo para popular as tabelas no GitHub. 
+Segue link https://github.com/viniciuscdes/mysqlbook/blob/master/popula_banco.sql */
+
+/* Popula tabela clientes */
+
+insert into comclien values(	1 	,'0001','AARONSON FURNITURE'   	    ,'AARONSON FURNITURE LTD'	,'2015-02-17 23:14:50',     '17.807.928/0001-85', '(21) 8167-6584' ,'QUEIMADOS'             ,'RJ' );
+insert into comclien values(	2   ,'0002','LITTLER '             	    ,'LITTLER  LTDA'        	,'2015-02-17 23:14:50',     '55.643.605/0001-92', '(27) 7990-9502' ,'SERRA'                	,'ES' );
+insert into comclien values(	3   ,'0003','KELSEY  NEIGHBOURHOOD'	    ,'KELSEY  NEIGHBOURHOOD' 	,'2015-02-17 23:14:50',     '05.202.361/0001-34', '(11) 4206-9703' ,'BRAGANÇA PAULISTA'    	,'SP' );
+insert into comclien values(	4   ,'0004','GREAT AMERICAN MUSIC' 	    ,'GREAT AMERICAN MUSIC'	    ,'2015-02-17 23:14:50',     '11.880.735/0001-73', '(75) 7815-7801' ,'SANTO ANTÔNIO DE JESUS','BA' );
+insert into comclien values(	5   ,'0005','LIFE PLAN COUNSELLING'	    ,'LIFE PLAN COUNSELLING' 	,'2015-02-17 23:14:50',     '75.185.467/0001-52', '(17) 4038-9355' ,'BEBEDOURO'            	,'SP' );
+insert into comclien values(	6   ,'0006','PRACTI-PLAN'          	    ,'PRACTI-PLAN LTDA'     	,'2015-02-17 23:14:50',     '32.518.106/0001-78', '(28) 2267-6159' ,'CACHOEIRO DE ITAPEMIRI','ES' );
+insert into comclien values(	7   ,'0007','SPORTSWEST'           	    ,'SPORTSWEST LTDA'      	,'2015-02-17 23:14:50',     '83.175.645/0001-92', '(61) 4094-7184' ,'TAGUATINGA'           	,'DF' );
+insert into comclien values(	8   ,'0008','HUGHES MARKETS'       	    ,'HUGHES MARKETS LTDA'  	,'2015-02-17 23:14:50',     '04.728.160/0001-02', '(21) 7984-9809' ,'RIO DE JANEIRO'       	,'RJ' );
+insert into comclien values(	9   ,'0009','AUTO WORKS'           	    ,'AUTO WORKS LTDA'      	,'2015-02-17 23:14:50',     '08.271.985/0001-00', '(21) 8548-5555' ,'RIO DE JANEIRO'       	,'RJ' );
+insert into comclien values( 10	,'00010','DAHLKEMPER ' ,'DAHLKEMPER  LTDA' ,'2015-02-17 23:14:50', '49.815.047/0001-00','(11) 4519-7670' ,'SÃO PAULO' ,'SP' );
+
+/* Popula tabela vendedores */
+
+insert into comvende values(1,'0001',    'CARLOS FERNANDES','CARLOS FERNANDES LTDA',  '(47) 7535-8144',12  );
+insert into comvende values(2,'0002', 'JÚLIA	GOMES', 'JÚLIA GOMES LTDA', '(12) 8037-6661',25 );
+
+/* Popula tabela Fornecedores */
+
+insert into comforne values(1 ,'0001',  'DUN RITE LAWN MAINTENANCE'	   ,'DUN RITE LAWN MAINTENANCE LTDA'	,'(85) 7886-8837' );
+insert into comforne values(2 ,'0002', 'SEWFRO FABRICS'	,'SEWFRO FABRICS LTDA'	,'(91) 5171-8483' );
+
+/* Popula tabela Produtos */
+
+insert into comprodu values( 1	,	'123131',     'NOTEBOOK'	,'1251.29'  ,'A',	1  );
+insert into comprodu values( 2	,	'123223',     'SMARTPHONE','1242.21'  ,'A',	2  );
+insert into comprodu values( 3	,	'1231',     'DESKTOP'	,'1241.21'  ,'A',	1  );
+insert into comprodu values( 4	,	'142123',     'TELEVISÃO'	,'2564.92'  ,'A',	2  );
+insert into comprodu values( 5	, '7684', 'DRONE'	,'2325.32' ,'A', 1 ); 
+
+/* Popula tabela Vendas */
+
+insert into comvenda values(1	    ,	'1'	    ,	1	,	1	,	1 ,  '25141.02'  ,	0	,	'25141.02'  ,  '2015-01-01'	 );
+insert into comvenda values(2	    ,	'2'	    ,	2	,	2	,	2 ,  '12476.58'  ,	0	,	'12476.58'  ,  '2015-01-02'	 );
+insert into comvenda values(3	    ,	'3'	    ,	3	,	1	,	1 ,  '16257.32'  ,	0	,	'16257.32'  ,  '2015-01-03'	 );
+insert into comvenda values(4	    ,	'4'	    ,	4	,	2	,	2 ,  '8704.55',	    0	,	'8704.55'   ,  '2015-01-04'	 );
+insert into comvenda values(5	    ,	'5'	    ,	5	,	1	,	1 ,  '13078.81',	0	,	'13078.81'  ,  '2015-01-01'	 );
+insert into comvenda values(6	    ,	'6'	    ,	6	,	2	,	2 ,  '6079.19',	    0	,	'6079.19'   ,  '2015-01-02'	 );
+insert into comvenda values(7	    ,	'7'	    ,	7	,	1	,	1 ,  '7451.26',	    0	,	'7451.26'   ,  '2015-01-03'	 );
+insert into comvenda values(8	    ,	'8'	    ,	8	,	2	,	2 ,  '15380.47',	0	,	'15380.47'  ,  '2015-01-04'	 );
+insert into comvenda values(9	    ,	'9'	    ,	9	,	1	,	1 ,  '13508.34',	0	,	'13508.34'  ,  '2015-01-01'	 );
+insert into comvenda values(10	    ,	'10'	,	1	,	2	,	2 ,  '20315.07',	0	,	'20315.07'  ,  '2015-01-02'	 );
+insert into comvenda values(11	    ,	'11'	,	1	,	1	,	1 ,  '8704.55',	    0	,	'8704.55'   ,  '2015-01-01'	 );
+insert into comvenda values(12	    ,	'12'	,	2	,	2	,	2 ,  '11198.05',	0	,	'11198.05'  ,  '2015-01-02'	 );
+insert into comvenda values(13	    ,	'13'	,	3	,	1	,	1 ,  '4967.84',	    0	,	'4967.84'   ,  '2015-01-03'	 );
+insert into comvenda values(14	    ,	'14'	,	3	,	2	,	2 ,  '7451.26',	    0	,	'7451.26'   ,  '2015-01-04'	 );
+insert into comvenda values(15	    ,	'15'	,	5	,	1	,	1 ,  '10747.359',	0	,	'10747.36'  ,  '2015-01-01'	 );
+insert into comvenda values(16	    ,	'16'	,	6	,	2	,	2 ,  '13502.34',	0	,	'13502.34'  ,  '2015-01-02'	 );
+insert into comvenda values(17	    ,	'17'	,	7	,	1	,	1 ,  '22222.99',	0	,	'22222.99'  ,  '2015-01-03'	 );
+insert into comvenda values(18	    ,	'18'	,	8	,	2	,	2 ,  '15465.69',	0	,	'15465.69'  ,  '2015-01-04'	 );
+insert into comvenda values(19	    ,	'19'	,	9	,	1	,	1 ,  '4650.64',	    0	,	'4650.64'   ,  '2015-01-01'	 );
+insert into comvenda values(20	, '20'	, 9	, 2	, 2 , '6975.96', 0	, '6975.96' , '2015-01-02'	);
+
+/* Popula tabela itens Vendas */
+
+insert into comivenda values(1 ,1 ,1,'1251.29',1,0);
+insert into comivenda values(2 ,1 ,2,'1242.21',2,0);
+insert into comivenda values(3 ,1 ,3,'1241.21',3,0);
+insert into comivenda values(4 ,1 ,4,'1513.77',4,0);
+insert into comivenda values(5 ,1 ,5,'2325.32',5,0);               
+insert into comivenda values(6 ,2 ,1,'1251.29',6,0);               
+insert into comivenda values(7 ,3 ,3,'1241.21',7,0);               
+insert into comivenda values(8 ,4 ,1,'1251.29',1,0);              
+insert into comivenda values(9 ,5 ,3,'1241.21',2,0);              
+insert into comivenda values(10,6 ,1,'1251.29',3,0);              
+insert into comivenda values(11,7 ,2,'1242.21',4,0);
+insert into comivenda values(12,8 ,5,'2325.32',5,0);
+insert into comivenda values(13,9 ,2,'1242.21',6,0);
+insert into comivenda values(14,10,3,'1241.21',7,0);
+insert into comivenda values(15,11,1,'1251.29',1,0);
+insert into comivenda values(16,12,1,'1251.29',2,0);
+insert into comivenda values(17,13,2,'1242.21',3,0);
+insert into comivenda values(18,14,2,'1242.21',4,0);
+insert into comivenda values(19,15,3,'1241.21',5,0);
+insert into comivenda values(20,16,3,'1241.21',6,0);
+insert into comivenda values(21 ,17,4,'1513.77',7,0);
+insert into comivenda values(22 ,18,4,'1513.77',1,0);
+insert into comivenda values(23 ,19,5,'2325.32',2,0);
+insert into comivenda values(24 ,20,5,'2325.32',3,0);
+insert into comivenda values(25 ,2 ,2,'1242.21',4,0);
+insert into comivenda values(26 ,3 ,4,'1513.77',5,0);
+insert into comivenda values(27 ,4 ,2,'1242.21',6,0);
+insert into comivenda values(28 ,5 ,4,'1513.77',7,0);
+insert into comivenda values(29 ,6 ,5,'2325.32',1,0);
+insert into comivenda values(30,7 ,3,'1241.21',2,0);
+insert into comivenda values(31,8 ,1,'1251.29',3,0);
+insert into comivenda values(32,9 ,4,'1513.77',4,0);
+insert into comivenda values(33,10,5,'2325.32',5,0);
+insert into comivenda values(34,11,2,'1242.21',6,0);
+insert into comivenda values(35,12,2,'1242.21',7,0);
+insert into comivenda values(36,13,3,'1241.21',1,0);
+insert into comivenda values(37,14,3,'1241.21',2,0);
+insert into comivenda values(38,15,4,'1513.77',3,0);
+insert into comivenda values(39,16,4,'1513.77',4,0);
+insert into comivenda values(40,17,5,'2325.32',5,0);
+insert into comivenda values(41,18,5,'2325.32',6,0);
+
+/* Para verificar todas as tabelas */
+
+select * from comclien;
+select * from comvenda;
+select * from comvende;
+select * from comivenda;
+select * from comprodu;
+select * from comforne;
+
+/* Para realizar consultas, usamos o comando select * from e o nome da tabela. 
+Nesse caso, será mostrado a tabela inteira */
+
+select * from comclien;
+
+/* Para realizar uma consulta especificando colunas especificas, nos colocamos depois do select o nome do campo 
+e depois from com o nome da tabela */
+
+select n_numeclien, c_codiclien, c_razaclien from comclien;
+
+/* Para realizar uma consulta de apenas um unico registro, utilizamos where logo depois do nome da tabela, 
+especificando o campo */
+
+select n_numeclien, c_codiclien, c_razaclien from comclien where c_codiclien = '0001';
+
+/* Para realizar uma consulta de um campo diferente de 0001, por exemplo, usamos <> */
+
+select n_numeclien, c_codiclien, c_razaclien from comclien where c_codiclien <> '0001';
+
+/* Podemos utilizar tambem, os operadores >, <, >=, <=, logico que somente para tipos numericos */
+
+/* Para compararmos strings, utilizamos o comando Like, onde ele irá buscar strings que contenhão letra. 
+Ex: Se quisermos retornar todos os clientes que se iniciam com a letra B, montaríamos nossa consulta da seguinte maneira */
+
+select n_numeclien, c_codiclien, c_razaclien from comclien where c_razaclien like 'L%';
+
+/* O símbolo de % (porcento) é um coringa no SQL. 
+Quando não sabemos uma parte da string, podemos utilizá-lo no início(string%), no meio(%string%) ou no fim(%string) dela.*/
+
+/* Para realizar uma consulta, onde não há repetição ou diferente de zero, usamos o distinct */
+
+select distinct n_numeclien from comvenda;
+
+/* Para realizar uma consulta, onde queremos mais de um tipo para a consulta, utilizamos as clausulas in e not in. 
+Exemplo: Consulta para retornar simultaneamente os clientes que possuem n_numeclien igual a 1 e 2 */
+
+select c_codiclien, c_razaclien  from comclien where n_numeclien in (1,2);
+
+/* O not in, seria para consulta de campos onde não tem a especificação requisitada. 
+Exemplo: Consulta para retornar simultaneamente os clientes que possuem n_numeclien diferente de 1 e 2 */
+
+select c_codiclien, c_razaclien from comclien where n_numeclien not in (1,2);
+
+/* No exemplo acima, sabiamos o numero do cliente e por isso, conseguimos fazer a consulta. 
+E caso queremos saber qual cliente fez uma compra (tabela comvenda), consultando seu CNPJ (tabela comclien)? 
+No caso, iremos utilizar a subconsulta. Repare que no codigo abaixo, iremos utilizar a chave n_numeclien, 
+que está em ambos para fazer a correlação das tabelas. 
+Somente o cliente 10, DAHLKEMPER LTDA, não irá aparecer, 
+pois ele não fez nenhuma compra e não tem nenhum registro na tabela comvenda */
+
+select c_razaclien from comclien where n_numeclien in (select n_numeclien from comvenda where n_numeclien);
+
+/* Ao contrario */
+
+select c_razaclien from comclien where n_numeclien not in (select n_numeclien from comvenda);
+
+/* Outro exemplo mais complexo: Retornar o código das vendas (tabela comvenda) e a razão social dos clientes 
+(tabela comclien) que as fizeram. Novamente, iremos utilizar a chave n_numeclien */
+
+select c_codivenda, (select c_razaclien from comclien where n_numeclien = comvenda.n_numeclien) from comvenda;
+
+/* Caso queremos colocar apelido nas colunas das consultas (alias). 
+No c_codivenda iremos colocar CODIGO e no c_razaclien colocamos CLIENTE */
+
+select c_codivenda CODIGO, (select c_razaclien from comclien where n_numeclien = comvenda.n_numeclien) CLIENTE from comvenda;
+
+/* Outro exemplo */
+
+select c_codivenda CODIGO, (select c_nomevende from comvende where n_numevende = comvenda.n_numevende) VENDEDOR from comvenda;
+
+/* Outro exemplo */
+
+select n_numevenda NUMERO_VENDA, (select c_descprodu from comprodu where n_numeprodu = comivenda.n_numeprodu) DESCRICAO from comivenda;
+
+/*Sempre compare chave primaria de um com chave estrangeira de outro*/
+
+/* A forma que foi escrita acima não é muito comum. Nos exemplos acimas, estamos comparando
+somente uma tabela com outra tabela. Para melhorar as consultas utilizaremos o join. 
+Para isso, precisamos criar uma igualdade de constraint das tabelas. 
+
+Ex: comvenda.n_numeclien = comclien.n_numeclien */
+
+select c_codiclien, c_razaclien, c_codivenda Cod_Venda from comvenda, comclien where comvenda.n_numeclien = comclien.n_numeclien;
+
+/* Para deixar o select mais organizado, podemos ordenar, utilizando o Order by*/
+
+select c_codiclien, c_razaclien, c_codivenda Cod_Venda from comvenda, comclien where comvenda.n_numeclien = comclien.n_numeclien order by c_razaclien;
+
+/* Outro Exemplo*/
+
+select n_numeivenda NUMERO_i_VENDA, (select c_descprodu from comprodu where n_numeprodu = comivenda.n_numeprodu) DESCRICAO from comivenda order by n_numeivenda;
+
+/* Criando tabelas por meio do selec */
+
+/* Podemos criar tabelas atraves de outras tabelas por meio de selec.
+Essa opcao é muito utilizada, pois assim, não é modificado
+os dados da tabela original */
+
+create table comclien_bkp as(select * from comclien where c_estaclien = 'SP');
+
+/* Inserindo dados de tabelas por meio do selec */
+
+/* Podemos inserir dados em uma tabela, atraves do select.
+ Supondo que é necessario criar uma tabela contatos de clientes,
+ e ela será baseada com os dados da tabela comclien. */
+ 
+ /* codigo para criar a tabela */
+ 
+ create table comcontato(n_numecontato int not null auto_increment,c_nomecontato varchar(200),c_fonecontato varchar(30),c_cidacontato varchar(200),c_estacontato varchar(2),n_numeclien int,primary key(n_numecontato));
+ 
+ /* codigo para inserir dados na tabela comcontato com base na tabela comclien.*/
+ 
+ insert into comcontato(select n_numeclien,c_nomeclien,c_foneclien,c_cidaclien,c_estaclien,n_numeclien from comclien);
+ 
+ /* Veja que ele irá inserir os dados conforme a ordem das tabelas.
+ 
+ /* Outro exemplo utilizando multiplas tabelas */
+ 
+ insert into comventp_teste (n_numeivenda, n_numeprodu,c_descprodu,n_valoivenda) select n_numeivenda,n_numeprodu,(select c_descprodu from comprodu where n_numeprodu = comivenda.n_numeprodu),n_valoivenda from comivenda;
+ 
+ /* Alterando dados de tabelas por meio do select */
+ 
+ /* A tabela comcontato esta com registros diferentes da comclien, e precisamos alterar */
+ 
+ /* Para poder alterar, utilizamos o seguinte codigo, informando que os clientes da tabela comclien_bkp
+que estarem na tabela comcontato, atraves do n_numecontato (chave) irá alterar o campo
+c_cidacontato e c_estacontato */
+ 
+ update comcontato 
+ set c_cidacontato = 'LONDRINA',c_estacontato = 'PR' 
+ where n_numeclien in ( select n_numeclien from comclien_bkp);
+ 
+  /* Deletando dados de tabelas por meio do select */
+  
+  /* Temos a necessidade de deletar os contatos que não possuem registro
+  de venda na tabela comvenda*/
+  
+delete from comcontato where n_numeclien not in (select n_numeclien from comvenda );
+
+/* Funções de Agregação */
+
+/*Group By*/
+
+/* Uma das funções utilziadas para agregar dados, é a Group By.
+Nela, o resultado do select não irá mostrar repetições. */
+
+/* Sem a agregação */
+
+select c_codiclien, c_razaclien 
+from comvenda, comclien 
+where comvenda.n_numeclien = comclien.n_numeclien 
+order by c_razaclien;
+
+/* Com a agregação */
+
+select c_codiclien, c_razaclien 
+from comclien, comvenda 
+where comvenda.n_numeclien = comclien.n_numeclien 
+group by c_codiclien, c_razaclien order by c_razaclien;
+
+/* O MySQL agrupou o código e a razão social, trazendo apenas um registro de cada. 
+Porém, essa consulta poderia ser melhor se tivéssemos a quantidade de vendas de cliente.
+Podemos utilizar uma outra função de agregação chamada count() para contar os
+registros que estão agrupados. */
+
+select c_codiclien, c_razaclien, 
+count(n_numevenda) Qtde
+from comclien, comvenda
+where comvenda.n_numeclien = comclien.n_numeclien
+group by c_codiclien, c_razaclien
+order by c_razaclien;
+
+/* Se fazermos um select com count utilziando *, ele conta quantos registros a tabela possui*/
+
+select count(*) from comclien;
+
+/*
+
++----------+
+| count(*) |
++----------+
+|       10 |
++----------+
+
+*/
+
+/* Having Count()*/
+
+/* Utilizada para ser uma condicao do count. Ex:
+Fazer um relatório que traga como resultado
+os clientes que tiveram mais do
+que duas vendas. */
+
+select c_razaclien, 
+count(n_numevenda) 
+from comclien, comvenda
+where comvenda.n_numeclien = comclien.n_numeclien
+group by c_razaclien
+having count(n_numevenda) > 2;
+
+/* Max() e min()*/
+
+/* Se quisermos recuperar o valor da maior venda*/
+
+select max(n_totavenda) maior_venda from comvenda;
+
+/* Já para a menor*/
+
+select min(n_totavenda) menor_venda from comvenda;
+
+/* Retornar os dois valores ao mesmo tempo */
+
+select min(n_totavenda) menor_venda, max(n_totavenda) maior_venda from comvenda;
+
+/* Sum()*/
+
+/* Traz a somatorio de uma coluna desejada*/
+
+select sum(n_valovenda) valor_venda,sum(n_descvenda) descontos,sum(n_totavenda) total_venda from comvenda;
+
+/*
+
++-------------+-----------+-------------+
+| valor_venda | descontos | total_venda |
++-------------+-----------+-------------+
+|   244279.29 |      0.00 |   244279.29 |
++-------------+-----------+-------------+
+
+*/
+
+/*Betwen*/
+
+/* verifica um intervalo entre duas variáveis, seja de datas ou numérico.*/
+
+select sum(n_valovenda) valor_venda,
+sum(n_descvenda) descontos,
+sum(n_totavenda) total_venda
+from comvenda
+where d_datavenda between '2015-01-01' and '2015-01-31';
+
+/*
+
++-------------+-----------+-------------+
+| valor_venda | descontos | total_venda |
++-------------+-----------+-------------+
+|   244279.29 |      0.00 |   244279.29 |
++-------------+-----------+-------------+
+
+*/
+
+/*Avg*/
+
+/* Calcula a media dos valores do campo. No caso, Avg((),) com virgula, determina
+quantos campos */
+
+select format(avg(n_totavenda),2) from comvenda;
+
+/*
+
++----------------------------+
+| format(avg(n_totavenda),2) |
++----------------------------+
+| 12,213.96                  |
++----------------------------+
+
+*/
+
+/* Funcoes de String */
+
+/* Substr*/
+
+/* queremos os registros
+que possuem o código da posição 1 até a posição 3 com a
+sequência de caracteres 123 */
+
+select c_codiprodu, c_descprodu from comprodu where substr(c_codiprodu,1,3) = '123';
+
+/*
+
++-------------+-------------+
+| c_codiprodu | c_descprodu |
++-------------+-------------+
+| 123131      | NOTEBOOK    |
+| 123223      | SMARTPHONE  |
+| 1231        | DESKTOP     |
++-------------+-------------+
+
+*/
+
+/*length*/
+
+/* Com a função LENGTH() , vamos
+contar quantos caracteres o código do produto tem. */
+
+select c_codiprodu, c_descprodu from comprodu where length(c_codiprodu) > 4;
+
+/*
+
++-------------+-------------+
+| c_codiprodu | c_descprodu |
++-------------+-------------+
+| 123131      | NOTEBOOK    |
+| 123223      | SMARTPHONE  |
+| 142123      | TELEVISÃO   |
++-------------+-------------+
+
+*/
+
+/* Podemos juntar as duas funcoes com o AND */
+
+select c_codiprodu, c_descprodu
+from comprodu
+where substr(c_codiprodu,1,3) = '123'
+and length(c_codiprodu) > 4;
+
+/*
+
++-------------+-------------+
+| c_codiprodu | c_descprodu |
++-------------+-------------+
+| 123131      | NOTEBOOK    |
+| 123223      | SMARTPHONE  |
++-------------+-------------+
+
+*/
+
+/* Outro exemplo */
+
+/* Vamos selecionar apenas os cinco primeiros caracteres
+do campo c_razaclien e contar quantos deles temos no código
+do cliente. */
+
+select substr(c_razaclien,1,5) Razao_Social,
+length(c_codiclien) Tamanho_Cod
+from comclien
+where n_numeclien = 1;
+
+/*
+
++--------------+-------------+
+| Razao_Social | Tamanho_Cod |
++--------------+-------------+
+| AARON        |           4 |
++--------------+-------------+
+
+*/
+
+/* Concat()*/
+
+/* Esta funcao, concatena dois ou mais campos
+O Concat() nao precisar especificar o separador */
+
+select concat(c_razaforne,' - fone: ', c_foneforne)
+from comforne
+order by c_razaforne;
+
+/*
+
++-------------------------------------------------------+
+| concat(c_razaforne,' - fone: ', c_foneforne)          |
++-------------------------------------------------------+
+| DUN RITE LAWN MAINTENANCE LTDA - fone: (85) 7886-8837 |
+| SEWFRO FABRICS LTDA - fone: (91) 5171-8483            |
++-------------------------------------------------------+
+
+*/
+
+/* Repare, que o codigo adicionou o nome fone:, depois do registro campo
+c_foneforne*/
+
+/* outro exemplo */
+
+select concat(c_codiclien,' ',c_razacl
+from comclien
+where c_razaclien like 'GREA%';
+
+/*
+
++-------------------------------------------------------+
+| concat(c_codiclien,' ',c_razaclien, ' ', c_nomeclien) |
++-------------------------------------------------------+
+| 0004 GREAT AMERICAN MUSIC GREAT AMERICAN MUSIC        |
++-------------------------------------------------------+
+
+*/
+
+/* Concat_ws()*/
+
+/* No Concat_ws, precisa especificar o separador */
+
+select
+concat_ws(';',c_codiclien, c_razaclien, c_nomeclien)
+from comclien
+where c_razaclien like 'GREA%';
+
+/*
+
++------------------------------------------------------+
+| concat_ws(';',c_codiclien, c_razaclien, c_nomeclien) |
++------------------------------------------------------+
+| 0004;GREAT AMERICAN MUSIC;GREAT AMERICAN MUSIC       |
++------------------------------------------------------+
+
+*/
+
+/* Lcase() e lower() */
+
+/*Se você necessitar, em
+algum lugar de sua aplicação, dos registros em letras minúsculas, o
+MySQL também tem uma função para auxiliá-lo. Utilize o lcase
+ou o lower da seguinte maneira: */
+
+select lcase(c_razaclien) from comclien;
+
+/*
+
++------------------------+
+| lcase(c_razaclien)     |
++------------------------+
+| aaronson furniture ltd |
+| littler  ltda          |
+| kelsey  neighbourhood  |
+| great american music   |
+| life plan counselling  |
+| practi-plan ltda       |
+| sportswest ltda        |
+| hughes markets ltda    |
+| auto works ltda        |
+| dahlkemper  ltda       |
++------------------------+
+
+*/
+
+/* Ucase() */
+
+/*Registros em Maiuscula*/
+
+select ucase('banco de dados mysql')
+from dual;
+
+/*
+
++-------------------------------+
+| ucase('banco de dados mysql') |
++-------------------------------+
+| BANCO DE DADOS MYSQL          |
++-------------------------------+
+
+*/
+
+/*OBS: Dual é uma tabela padrao do MySQL
+que possui somente uma linha e uma coluna */
+
+/* Funcoes de Calculos e Operadores Aritimeticos */
+
+/*Round()*/
+
+/* utilizada para arredondar valores */
+
+select round('213.142',2)
+from dual;
+
+/*
+
++--------------------+
+| round('213.142',2) |
++--------------------+
+|             213.14 |
++--------------------+
+
+*/
+
+/*Format()*/
+
+/*utilizado para formatar os valores, e não arredondalos */
+
+/*
+
++-----------------------+
+| format('21123.142',2) |
++-----------------------+
+| 21,123.14             |
++-----------------------+
+
+*/
+
+/* Truncat */
+
+/* Utilizado para truncar as casas decimais, ou seja, omiti-las. */
+
+select truncate(max(n_totavenda),0) maior_venda
+from comvenda;
+
+/*
+
++-------------+
+| maior_venda |
++-------------+
+|       25141 |
++-------------+
+
+select truncate(min(n_totavenda),1) menor_venda
+from comvenda;
+
++-------------+
+| menor_venda |
++-------------+
+| 4650.6 |
++-------------+
+
+*/
+
+
+/*Sqrt*/
+
+/*Calcula a raiz quadrada */
+
+select sqrt(4);
+
+/*
+
++---------+
+| sqrt(4) |
++---------+
+|       2 |
++---------+
+
+*/
+
+/* Pi, Seno, Cosseno e Tangente */
+
+select pi();
+
+select sin(pi());
+
+select cos(pi());
+
+select tan(pi()+1);
+
+/*Operadores Aritmeticos*/
+
+/*
+
+* : multiplicação;
+/ : divisão;
++ : adição;
+- : subtração.
+
+*/
+
+/*Operacoes de exemplo */
+
+select (n_qtdeivenda * n_valoivenda) multiplicação
+from comivenda where n_numeivenda = 4;
+
+select truncate((sum(n_valoivenda) /
+count(n_numeivenda)),2) divisão
+from comivenda;
+
+select (n_valoivenda + n_descivenda) adição
+from comivenda
+where n_numeivenda = 4;
+
+select (n_valoivenda - n_descivenda) subtração
+from comivenda
+where n_numeivenda = 4;
+
+/* Funcoes com data */
+
+/*Lembrete: O MySQL Utiliza o padrão americano YYYY-MM-DD*/
+
+/*CURDATE*/
+
+/* Retorna a data atual*/
+
+select curdate();
+
+/*
+
++------------+
+| curdate()  |
++------------+
+| 2020-04-15 |
++------------+
+
+*/
+
+/* NOW*/
+
+/* Retorna a data e hora atual */
+
+/*
+
++---------------------+
+| now()               |
++---------------------+
+| 2020-04-15 16:42:26 |
++---------------------+
+
+*/
+
+/*Datediff*/
+
+/*retornar o intervalo entre duas datas:*/
+
+/*
+
++----------------------------------------------+
+| datediff('2015-02-01 23:59:59','2015-01-01') |
++----------------------------------------------+
+|                                           31 |
++----------------------------------------------+
+
+*/
+
+/* date_add*/
+
+/* Retorna a soma de dias a uma data*/
+
+select date_add('2013-01-01', interval 31 day);
+
+/*
+
++-----------------------------------------+
+| date_add('2013-01-01', interval 31 day) |
++-----------------------------------------+
+| 2013-02-01                              |
++-----------------------------------------+
+
+*/
+
+/*Podemos formatar as datas para o nosso padrão. No caso, utilizar o seguinte comando*/
+
+select date_format('2015-01-10',get_format(date,'EUR'));
+
+/*
+
++--------------------------------------------------+
+| date_format('2015-01-10',get_format(date,'EUR')) |
++--------------------------------------------------+
+| 10.01.2015                                       |
++--------------------------------------------------+
+
+*/
+
+/* PROCEDURES E FUNCTIONS */
+
+/* Agora, em nosso sistema, temos a necessidade de criar um
+campo para armazenar o valor da comissão para cada venda. Esse
+valor será baseado na porcentagem de comissão que cada vendedor
+tem que ganhar, que estará cadastrada em um outro campo que
+também vamos criar na tabela de vendedores. Devemos criar esses
+dois campos utilizando o comando alter table que já
+aprendemos: o campo n_porcvende na tabela de vendedores e o
+n_vcomvenda na de vendas: */
+
+alter table comvende add n_porcvende float(10,2);
+
+alter table comvenda add n_vcomvenda float(10,2);
+
+/*Gerados os campos, vamos criar a nossa stored procedure
+que deverá buscar o valor da porcentagem de cada vendedor,
+realizar o processamento e, na sequência, fazer um update na
+coluna de valor da comissão na tabela de vendas.
+
+Utilizaremos a procedure para fazer esse update, pois, em
+nosso cenário, já tínhamos criado o banco sem essas colunas e o
+nosso sistema já está em produção, isto é, estamos supondo que há
+pessoas utilizando-o. Isso ocorre a todo momento no
+desenvolvimento de sistemas. Há sempre a necessidade de novas
+colunas e novos processos. Por isso, devemos criar meios para
+adequar o nosso sistema. */
+
+ delimiter $$ /*Delimitador $$ da procedure */
+ 
+ create procedure processa_comissionamento( 
+ in data_inicial date,
+ in data_final date ,
+ out total_processado int )
+ begin
+	declare total_venda float(10,2) default 0;
+	declare venda int default 0;
+	declare vendedor int default 0;
+	declare comissao float(10,2) default 0;
+	declare valor_comissao float(10,2) default 0;
+	declare aux int default 0;
+	declare fimloop int default 0;
+	
+     /* ## cursor para buscar os registros a serem
+     ## processados entre a data inicial e data final
+     ## e valor total de venda é maior que zero */
+	 
+ declare busca_pedido cursor for
+	select n_numevenda,
+		   n_totavenda,
+           n_numevende
+	from comvenda
+   where d_datavenda between data_inicial
+      and data_final
+       and n_totavenda > 0 ;
+	   
+     /*## Faço aqui um tratamento para o banco não
+     ## executar o loop quando ele terminar
+     ## evitando que retorne qualquer erro */
+	 
+ declare
+ continue handler
+ for sqlstate '02000'
+ set fimloop = 1;
+ 
+     /*## abro o cursor*/
+	 
+    open busca_pedido;
+	
+    /*## inicio do loop */
+
+    vendas: LOOP
+	
+    /*##Aqui verifico se o loop terminou
+      ##e saio do loop*/
+	  
+    if fimloop = 1 then
+      leave vendas;
+    end if;
+	
+    /*##recebo o resultado da consulta em cada variável*/
+	
+    fetch busca_pedido into venda, total_venda,
+    vendedor;
+	
+    /*## busco o valor do percentual de cada vendedor*/
+
+
+    select n_porcvende
+    into comissao
+    from comvende
+    where n_numevende = vendedor;
+	
+    /*## verifico se o percentual do vendedor é maior
+    ## que zero logo após a condição deve ter o then */
+	
+    if (comissao > 0 ) then
+	
+    /*## calculo o valor da comissao*/
+
+    set valor_comissao = ((total_venda * comissao) / 100);
+	
+    /* ## faço o update na tabela comvenda com o
+    ## valor da comissão*/
+	
+    update comvenda set
+    n_vcomvenda = valor_comissao
+    where n_numevenda = venda;
+    commit;
+	
+    /* ## verifico se o percentual do vendedor é igual
+    ## zero na regra do nosso sistema se o vendedor
+    ## tem 0 ele ganha 0 porcento de comissão */
+	
+    elseif(comissao = 0) then
+    update comvenda set n_vcomvenda = 0
+    where n_numevenda = venda;
+    commit;
+	
+	/*## se ele não possuir registro no percentual de
+	## comissão ele irá ganhar 1 de comissão
+	## isso pela regra de negócio do nosso sistema */
+	
+	else
+		set comissao = 1;
+		set valor_comissao =((total_venda * comissao) / 100);
+		
+		update
+        comvenda set n_vcomvenda = valor_comissao
+        where n_numevenda = venda;
+        commit;
+		
+    /*## fecho o if*/
+	
+	end if;
+	
+	set comissao = 0;
+	
+	/* ##utilizo a variável aux para contar a quantidade */
+	
+	set aux = aux +1 ;
+	end loop vendas;
+	
+	/*atribuo o total de vendas para a variável de
+	## saída */
+	
+	set total_processado = aux;
+	
+	/* ## fecho o cursor*/
+	
+	close busca_pedido;
+	
+	/* ##retorno o total de vendas processadas */
+	
+	end$$
+	
+	delimiter ;
+	
+	/*Para executar este processo, utilizaremos o comando call*/
+	
+	/*Para essa procedure, é preciso de 
+	 duas entradas: data_inical e data_final
+	 uma saida(resultado): total_processado */
+	 
+	 call processa_comissionamento('2015-01-01','2015-05-30' ,@a);
+	 select * from comvenda;
+	 select @a;
+	 
+	 /* Para você recriar essa procedure ou excluí-la, aplicando no
+     SGBD novamente, você deve fazê-lo utilizando o mesmo comando
+     para deletar. Em vez de drop table , será drop procedure .
+	 
+	 /* drop procedure processa_comissionamento; */
+	 
+/* PROCESSANDO E RETORNANDO COM FUNCTION */
+
+/*
+
+Com as procedures , conseguimos realizar processamentos, e
+ainda, se quisermos, obter algum retorno. As funções são utilizadas
+especificamente para retornar algo. Podemos passar algum
+parâmetro com o mesmo tipo de declaração que fazemos na
+procedure e informar o tipo de retorno que teremos. 
+
+Se você quiser criar algo para ter algum retorno, aconselho a
+utilização de uma function , pois poderemos utilizá-las no meio
+de uma consulta, ao contrário da procedure , que temos que
+executar com um comando específico.
+
+Vamos criar uma function para retornar o nome do cliente.
+
+Poderíamos fazer uma consulta por meio de um join para
+realizar esse retorno, o mesmo que fizemos no capítulo Temos
+registros: vamos consultar?, quando queríamos retornar o nome do
+cliente da venda.
+Porém, imagine que você está fazendo uma consulta com muitas
+tabelas e joins em seu sistema. Ter uma função para ter o nome
+do cliente facilitaria.
+
+*/
+
+delimiter $$
+
+create function rt_nome_cliente(vn_numeclien int)
+returns varchar(50) deterministic
+
+begin
+
+declare nome varchar(50);
+
+select c_nomeclien into nome from comclien where n_numeclien = vn_numeclien;
+
+return nome;
+
+end $$
+
+delimiter ;
+
+/* ## estou passando como parâmetro o id do cliente igual a 1 */
+
+select rt_nome_cliente(1);
+
+/* 
+
++--------------------+
+| rt_nome_cliente(1) |
++--------------------+
+| AARONSON FURNITURE |
++--------------------+
+
+*/
+
+/* ##irei retornar o código da venda, nome do cliente e a
+##data da venda ordenando pelo nome e em seguida pela data */
+
+select c_codivenda, rt_nome_cliente(n_numeclien),d_datavenda from comvenda order by 2,3;
+
+/*
+
++-------------+------------------------------+-------------+
+| c_codivenda | rt_nome_cliente(n_numeclien) | d_datavenda |
++-------------+------------------------------+-------------+
+| 1           | AARONSON FURNITURE           | 2015-01-01  |
+| 11          | AARONSON FURNITURE           | 2015-01-01  |
+| 10          | AARONSON FURNITURE           | 2015-01-02  |
+| 19          | AUTO WORKS                   | 2015-01-01  |
+| 9           | AUTO WORKS                   | 2015-01-01  |
+| 20          | AUTO WORKS                   | 2015-01-02  |
+| 4           | GREAT AMERICAN MUSIC         | 2015-01-04  |
+| 18          | HUGHES MARKETS               | 2015-01-04  |
+| 8           | HUGHES MARKETS               | 2015-01-04  |
+| 13          | KELSEY  NEIGHBOURHOOD        | 2015-01-03  |
+| 3           | KELSEY  NEIGHBOURHOOD        | 2015-01-03  |
+| 14          | KELSEY  NEIGHBOURHOOD        | 2015-01-04  |
+| 15          | LIFE PLAN COUNSELLING        | 2015-01-01  |
+| 5           | LIFE PLAN COUNSELLING        | 2015-01-01  |
+| 2           | LITTLER                      | 2015-01-02  |
+| 12          | LITTLER                      | 2015-01-02  |
+| 16          | PRACTI-PLAN                  | 2015-01-02  |
+| 6           | PRACTI-PLAN                  | 2015-01-02  |
+| 7           | SPORTSWEST                   | 2015-01-03  |
+| 17          | SPORTSWEST                   | 2015-01-03  |
++-------------+------------------------------+-------------+
+
+*/
+
+/* AUTOMATIZANDO O PROCESSO ATRAVÉS DE EVENT SCHEDULER */
+
+/* Criamos uma procedure para fazer o processamento das
+comissões. Porém, executar esse processamento pode se tonar uma
+atividade muito chata. Podemos agendar eventos para fazê-lo
+automática e periodicamente. Para isso, utilizamos o event
+scheduler 
+
+Esses eventos agendados são bastante utilizados para fazer
+rotinas fora do horário de trabalho, principalmente de madrugada,
+ou se o sistema for utilizado 24 horas por dia. Escolha o horário de
+menor utilização, pois, geralmente, são processamentos grandes
+que requerem do servidor um amplo uso do processador de
+memória. Se realizado quando há muitas pessoas usando o sistema,
+pode atrapalhar a performance e até levar à queda do serviço de
+banco de dados. Mas nada impede de utilizá-lo para automatizar
+pequenas rotinas durante o dia
+
+Vamos programar a procedure
+processa_comissionamento para executar uma vez por semana.
+Por isso, utilizaremos on schedule every 1 week , que vai
+executar a primeira vez no dia '2015-03-01' ás 23:00 horas.
+Primeiro, devemos habilitar o event_scheduler em nosso
+SGBD, pois, por padrão, ele fica desabilitado. Abra o prompt e
+digite o comando:
+
+*/
+
+set global event_scheduler = on;
+
+/* 
+
+Nos parâmetros na chamada da procedure , utilizarei a
+função de data current_date() que retorna a data atual. Como
+o evento vai executar uma vez por semana, quero processar as
+vendas da semana. Logo, vou subtrair sete dias da data atual.
+
+*/
+
+delimiter $$
+create event processa_comissao
+on schedule every 1 week starts '2015-03-01 23:38:00'
+do
+  begin
+  call processa_comissionamento(
+current_date() - interval 7 day,
+current_date(), @a );
+end
+$$
+delimiter ;
+
+/* Para vermos o resultado, vamos consultar as vendas desse
+período. */
+
+select c_codivenda Codigo,
+n_totavenda Total,
+n_vcomvenda Comissao
+from comvenda
+where
+d_datavenda between current_date() - interval 60 day
+and current_date();
+
+/*
+
+Podemos também executar os eventos com outras
+periodicidades, entre elas:
+on schedule every 1 year: uma vez por ano;
+on schedule every 1 month: uma vez por mês;
+on schedule every 1 day: uma vez ao dia;
+on schedule every 1 hour: uma vez por hora;
+on schedule every 1 minute: uma vez por minuto;
+on schedule every 1 second: uma vez por segundo.
+
+Você pode utilizar o tempo que desejar. Eu exemplifiquei com
+o número 1 , mas você pode utilizar, por exemplo, 3 hour .
+Além de escolher quando ela começará, você também pode
+decidir quando parará de executar. Para exemplificar, vamos criar
+um evento para iniciar a nossa procedure a cada 10 minutos e
+parar depois de uma hora.
+
+*/
+
+delimiter $$
+create event processa_comissao_event
+on schedule every 10 minute
+starts current_timestamp
+ends current_timestamp + interval 30 minute
+do
+begin
+call processa_comissionamento(
+current_date() - interval 7 day,
+current_date(),
+@a);
+end
+$$
+delimiter ;
+
+/*
+
+Você pode utilizar os eventos de uma maneira versátil. Por
+exemplo: utilizá-los para realizar insert , update , delete e
+executar procedures e functions .
+Ao criar um evento, ele fica habilitado automaticamente. Pode
+acontecer que, depois de um período, você não queira mais que o
+processo execute maquinalmente. Em vez de excluí-lo, você pode
+apenas desabilitá-lo com o seguinte comando:
+
+*/
+
+alter event processa_comissao_event disable;
+
+/*
+
+E para habilitá-lo novamente:
+
+*/
+
+alter event processa_comissao_event enable; 
+
+/*CRIANDO GATILHOS */
+
+/*A trigger é um conjunto de operações que são executadas
+automaticamente quando uma alteração é feita em um registro que
+está relacionado a uma tabela. Ela pode ser invocada antes ou
+depois de uma alteração em um insert , update ou delete ,
+podendo haver até 6 triggers por tabela.
+
+Alguns benefícios de sua utilização são:
+Verificar a integridade dos dados, pois é possível fazer uma
+verificação antes da inserção do registro;
+Contornar erros na regra de negócio do sistema no banco
+de dados;
+Utilizar como substituta para event_scheduler .
+Entretanto, ela não o substitui em processos que não são
+disparados a partir de uma tabela;
+Auditar as mudanças nas tabelas. */
+
+/* TRIGGERS BEFORE INSERT E BEFORE UPDATE */
+
+/*Como queremos realizar o cálculo
+da comissão automaticamente, devemos criar duas triggers: uma
+quando você insere uma nova venda e outra quando a
+atualizarmos.Utilizaremos as condições before insert (antes
+da inserção) e before update (antes da atualização). Além
+dessas duas, existem outras que mostrarei na sequência.
+Para realizar a nossa operação, devemos consultar o percentual
+da comissão do cadastro de vendedores para gerar o cálculo.
+Colocando em prática o que já aprendemos, vamos criar uma
+function para ter esse percentual. */
+
+delimiter $$
+create function rt_percentual_comissao(vn_n_numevende int)
+returns float deterministic
+begin
+declare percentual_comissao float(10,2);
+select n_porcvende
+into percentual_comissao
+from convende
+where n_numevende = vn_n_numevende;
+return percentual_comissao;
+end;
+$$
+delimiter ;
+
+/* Vamos agora ao código para criar a trigger antes da inserção.
+Observe que vou utilizar o mesmo cálculo que usei na
+procedure . */
+
+delimiter $$
+create trigger tri_vendas_bi
+before insert on comvenda
+for each row
+begin
+declare percentual_comissao float(10,2);
+declare valor_comissao float(10,2);
+
+/*## busco o percentual de comissão que o vendedor deve
+## receber */
+
+select rt_percentual_comissao(new.n_numevende)
+into percentual_comissao;
+
+/*## calculo a comissão */
+
+set valor_comissao = ((new.n_totavenda * percentual_com
+issao) / 100);
+
+/*## recebo no novo valor de comissão*/
+
+set new.n_vcomvenda = valor_comissao;
+end
+$$
+delimiter ;
+
+/* Agora, quando você inserir um novo registro na tabela
+comvendas , o cálculo do valor da comissão do vendedor vai ser
+realizado e o campo será preenchido.
+Porém, o valor total da venda pode ser alterado e, caso ocorra a
+inserção ou retirada de um item dela, o valor da comissão a ser
+paga ao vendedor também mudará. Por isso, devemos criar mais
+uma trigger na tabela comvendas para fazer um update
+nesse valor para quando isso acontecer.
+
+No lugar do insert , utilizaremos o update .
+
+*/
+
+delimiter $$
+create trigger tri_vendas_bu
+before update on comvenda
+for each row
+begin
+declare percentual_comissao float(10,2);
+declare valor_comissao float(10,2);
+
+/*## No update, verifico se o valor total novo da venda
+## é diferente do total anterior, pois se forem iguais,
+## não há necessidade do cálculo */
+
+if (old.n_totavenda <> new.n_totavenda) then
+select rt_percentual_comissao(new.n_numevende)
+into percentual_comissao;
+
+/*## cálculo da comissão*/
+
+set
+valor_comissao = ((new.n_totavenda * percentual_comis
+sao) / 100);
+
+/*## recebo no novo valor de comissão*/
+
+set new.n_vcomvenda = valor_comissao;
+end if;
+end
+$$
+delimiter ;
+
+/* Quando você alterar o valor total da venda, a comissão será
+gerada.
+
+Observe que também padronizei os nomes das triggers,
+colocando no final do nome principal o seu tipo. Onde era
+before update , coloquei bu e para before insert , bi.
+Farei assim para os outros tipos também.*/
+
+/* TRIGGERS AFTER INSERT E AFTER UPDATE */
+
+/*Desta vez, vamos usar os tipos after insert (depois de
+inserir) e after update (depois de alterar) na tabela
+comivenda (itens da venda), para que, depois de inserir os
+produtos, o valor do seu total seja calculado e o campo
+n_totavenda seja atualizado. */
+
+delimiter $$
+create trigger tri_vendas_ai
+after insert on comivenda
+for each row
+begin
+
+/*## declaro as variáveis que utilizarei */
+
+declare vtotal_itens float(10,2) default 0;
+declare total_item float(10,2) default 0;
+
+declare fimLoop boolean default false;
+
+/*## cursor para buscar os itens já registrados da venda*/
+
+declare busca_itens cursor for
+select n_valoivenda
+from comivenda
+where n_numevenda = new.n_numevenda;
+
+/*##Handler para encerrar o loop antes da última linha*/
+
+declare continue handler for
+sqlstate '02000'
+set fimLoop = true;
+
+/*## abro o cursor*/
+
+open busca_itens;
+
+/*## declaro e inicio o loop*/
+
+itens : loop
+fetch busca_itens into total_item;
+
+/*#encerra o bloco quando o cursor não retornar mais linhas.*/
+
+if fimLoop then
+leave itens;
+end if;
+
+/*## somo o valor total dos itens(produtos)*/
+
+set vtotal_itens = vtotal_itens + total_item;
+end loop itens;
+close busca_itens;
+
+/*## atualizo o total da venda*/
+
+update comvenda set n_totavenda = vtotal_itens
+where n_numevenda = new.n_numevenda;
+end
+$$
+delimiter ;
+
+/*Agora temos a mesma situação que tínhamos anteriormente,
+pois a tabela de itens da venda pode ser atualizada e, se isso
+ocorrer, o valor de seu total ficará incorreto. Por isso, devemos
+criar uma trigger que o atualizará se o valor do item for alterado;
+mas somente na condição de o novo ser diferente do antigo. Esse
+não sendo o caso, não é necessário executar os cálculos. */
+
+delimiter $$
+create trigger tri_ivendas_au
+after update on comivenda
+for each row
+begin
+
+/* ## declaro as variáveis que utilizarei */
+
+declare vtotal_itens float(10,2) default 0;
+declare total_item float(10,2) default 0;
+declare fimLoop boolean default false;
+
+/*##cursor para buscar os itens já registrados da venda*/
+
+declare busca_itens cursor for
+select n_valoivenda
+from comivenda
+where n_numevenda = new.n_numevenda;
+
+/* ##Handler para encerrar o loop antes da última linha*/
+
+declare continue handler for
+sqlstate '02000'
+set fimLoop = true;
+
+/*## verifico se há necessidade de alteração
+## faço somente se o novo valor for alterado*/
+
+if new.n_valoivenda <> old.n_valoivenda then
+
+/*## abro o cursor */
+
+open busca_itens;
+
+/* ## declaro e inicio o loop */
+
+itens : loop
+
+fetch busca_itens into total_item;
+
+/* #encerra o bloco quando o cursor não retornar mais l
+inhas.*/
+
+if fimLoop then
+leave itens;
+end if;
+
+/* ## somo o valor total dos itens(produtos)*/
+
+set vtotal_itens = vtotal_itens + total_item;
+
+end loop itens;
+
+close busca_itens;
+
+/*## atualizo o total da venda*/
+
+update comvenda set n_totavenda = vtotal_itens
+where n_numevenda = new.n_numevenda;
+
+end if;
+end
+
+$$
+delimiter ;
+
+/*TRIGGERS BEFORE DELETE E AFTER DELETE*/
+
+/* Agora, você pode estar com a seguinte dúvida: e se nós
+excluirmos um item de uma venda? Realmente, se isso ocorrer
+neste momento, o seu valor total estará incorreto, pois fizemos
+apenas as triggers para insert e update . Para corrigir este
+problema, vamos criar uma para o delete também. */
+
+delimiter $$
+
+create trigger tri_ivendas_af
+after delete on comivenda
+for each row
+begin
+
+/*## declaro as variáveis que utilizarei*/
+
+declare vtotal_itens float(10,2) default 0;
+declare total_item float(10,2) default 0;
+declare fimLoop boolean default false;
+
+/* ## cursor para buscar os itens já registrados da venda*/
+
+declare busca_itens cursor for
+select n_valoivenda
+from comivenda
+where n_numevenda = old.n_numevenda;
+
+/* ##Handler para encerrar o loop antes da última linha*/
+
+declare continue handler for
+sqlstate '02000'
+set fimLoop = true;
+
+/*## abro o cursor*/
+
+open busca_itens;
+
+/* ## declaro e inicio o loop*/
+
+fetch busca_itens into total_item;
+
+/*#encerra o bloco quando o cursor não retornar mais lin
+has.*/
+
+if fimLoop then
+leave itens;
+end if;
+
+/* ## somo o valor total dos itens(produtos) */
+
+set vtotal_itens = vtotal_itens + total_item;
+end loop itens;
+close busca_itens;
+
+/*## atualizo o total da venda*/
+
+update comvenda set n_totavenda = vtotal_itens
+where n_numevenda = old.n_numevenda;
+end
+$$
+delimiter ;
+
+/*Temos mais uma situação que podemos resolver utilizando a
+trigger: on delete . Lembra-se das questões de integridade de
+dados? Uma tabela que possui uma foreign key não pode deletar
+um registro sem antes fazer a exclusão do registro primário.
+Portanto, utilizando uma trigger, ao fazer um delete na
+tabela vendas antes de excluí-la ( before delete ), vamos deletar
+os itens. Desta maneira, respeitaremos a integridade, evitando
+erros no sistema e deletando os itens com um único comando.
+Você apenas precisará fazê-lo e a ela se encarregará do resto */
+
+delimiter $$
+create trigger tri_vendas_bf
+before delete on comvenda
+for each row
+begin
+
+/*## declaro as variáveis que utilizarei*/
+
+declare vtotal_itens float(10,2) default 0;
+declare total_item float(10,2) default 0;
+declare fimLoop boolean default false;
+
+/*## verifico se há necessidade de alteração
+## faço somente se o novo valor for alterado
+## cursor para buscar os itens já registrados da venda */
+
+declare busca_itens cursor for
+select n_valoivenda
+from comivenda
+where n_numevenda = old.n_numevenda;
+
+/*##Handler para encerrar o loop antes da última linha*/
+
+declare continue handler for
+sqlstate '02000'
+set fimLoop = true;
+
+/*## abro o cursor*/
+
+open busca_itens;
+
+/*## declaro e inicio o loop*/
+
+itens : loop
+
+fetch busca_itens into total_item;
+
+/*#encerra o bloco quando o cursor não retornar mais l
+inhas.*/
+
+if fimLoop then
+leave itens;
+end if;
+
+/*## somo o valor total dos itens(produtos)*/
+
+set vtotal_itens = vtotal_itens + total_item;
+end loop itens;
+close busca_itens;
+
+/* ## atualizo o total da venda */
+
+delete from comivenda where n_numevenda = old.n_numevenda;
+
+end
+$$
+delimiter ;
+
+/* Ao executarmos a seguinte instrução: */
+
+delete from comvenda where n_numevenda = 415;
+
+/* STATUS DAS TRIGGERS*/
+
+/* Por algumas razões, você pode querer não utilizar mais uma
+trigger. É possível escolher entre desabilitá-la ou excluí-la
+definitivamente. A vantagem da desabilitação é que você não
+precisará criá-la posteriormente, caso precise usá-la novamente.
+Por exemplo, se não quisermos mais que a comissão seja calculada
+automaticamente, podemos apenas invalidá-la.
+
+Para desabilitar uma trigger, fazemos: */
+
+alter trigger tri_vendas_bi desable;
+
+/* E se formos utilizar novamente o cálculo, habilitaremos
+novamente assim: */
+
+alter trigger tri_vendas_bi enable;
+
+/* E para excluí-la: */
+
+drop trigger tri_vendas_bi;
+
+/* GANHANDO PERFORMANCE COM INDICES */
+
+/* Para nos auxiliar no aprimoramento das consultas, o MySQL
+nos fornece os chamados índices. Quando criamos as nossas
+tabelas, nós já criamos um índice de chave primária (primary key).
+Porém, ele não é utilizado para fazer essa otimização de
+performance, pois serve apenas para cuidar da integridade dos
+dados.
+A medida inicial que devemos tomar para melhorar o tempo
+das consultas é a criação de índices para as tabelas. Se elas estão
+ demorando para serem concluídas, as primeiras suspeitas são: ou
+eles não foram feitos ou estão mal criados.
+
+Mas o que acontece para ocorrer esse ganho de desempenho?
+Quando uma tabela não tem índices, os seus registros são
+desordenados e uma consulta terá que percorrer todos eles. Se
+adicionarmos um índice, uma nova tabela é gerada. A quantidade
+de registros desta nova é a mesma que a da original, a diferença é
+que eles são organizados. Isso implica que uma consulta percorrerá
+a tabela para encontrar os registros que casem com a sua condição
+e a busca é cessada quando um valor imediatamente maior é
+encontrado.
+Se uma tabela possui 1000 registros, será, pelo menos, 100
+vezes mais rápido do que ler todos eles sequencialmente. Porém,
+note que, se você precisar acessar quase todos eles, seria mais
+rápido acessá-los sequencialmente, porque evitaria acessos ao
+disco a cada verificação.
+
+Vamos demonstrar como se faz dos dois jeitos, começando
+pelo create table . Utilizarei como exemplo a nossa tabela de
+clientes, tanto na criação como depois dela. Criarei dois índices.*/
+
+create table comclien(n_numeclien int not null auto_increment,
+c_codiclien varchar(10),
+c_nomeclien varchar(200),
+c_razaclien varchar(200),
+d_dataclien date,
+c_cnpjclien varchar(15),
+c_foneclien varchar(15),
+primary key (n_numeclien),
+index idx_comclien_2(c_codiclien));
+
+/* Agora, vamos ver como criar índices com alter table , uma
+vez que já criamos nossas tabelas no banco. */
+
+alter table comclien add index idx_comclien_3(c_razaclien);
+
+alter table comclien add index idx_comclien_4(c_codiclien);
+
+/* Quando Utilizar */
+
+/* Você deve dar preferência para colunas que usamos para
+pesquisa, ordenação ou agrupamento, em cláusulas: where ,
+joins , order by ou group by . Por isso, escolhi as colunas
+n_numeclien , c_codiclien e c_razaclien , já que são as que
+mais usamos durante o livro para fazer as consultas e buscas de
+registros. Porém, o fato de uma coluna aparecer na lista de colunas
+que serão exibidas em um select não a descarta de ser uma com
+index , pois ela pode estar na listagem e também estar na cláusula
+where , por exemplo.
+Outro fator que você deve levar em consideração é a
+cardinalidade de uma coluna que é referenciada em outras tabelas,
+como foreign key, por ela conter uma grande quantidade de
+números distintos. Índices funcionam melhor em colunas com um
+alto número de cardinalidade relativa do que de registros da tabela;
+isto é, colunas que têm muitos valores únicos e poucos duplicados. */
+
+/* QUando Não tulizar */
+
+/* Se uma coluna contém valores muito diferentes (por exemplo,
+a que guarda as idades), um índice vai diferenciar os registros
+rapidamente. Entretanto, ele não ajudará em uma que é usada para
+armazenar registros de gênero (sexo) e contém somente os valores
+M ou F . Se os registros têm, aproximadamente, o mesmo
+número de homens e mulheres, o índice percorrerá quase metade
+dos registros, qualquer que seja o valor buscado. Com isso,
+podemos dizer que é melhor criar índices em colunas com grande
+variação de registros.
+Com a criação dos índices nas tabelas, suas
+operações de insert , update e delete perderão velocidade.
+Isso ocorrerá, pois, ao realizar uma dessas alterações, a
+reordenação dos registros acontecerá. Não será nada perceptível ou
+que causará grande prejuízo de performance (por isso, digo que os
+benefícios são maiores). Em cada insert ou update , o SGBD
+ordenará os registros pelo index para suas consultas serem mais
+rápidas. */
+
+/*Nós podemos verificar os índices criados em uma tabela
+utilizando o mesmo show que usamos para ver o conteúdo de
+uma. Aqui, utilizaremos o show indexes , como no código na
+sequência. */
+
+/*
+
++----------+------------+----------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+
+| Table    | Non_unique | Key_name       | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment |
++----------+------------+----------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+
+| comclien |          0 | PRIMARY        |            1 | n_numeclien | A         |           2 |     NULL | NULL   |      | BTREE      |         |
+| comclien |          1 | idx_comclien_3 |            1 | c_razaclien | A         |           2 |     NULL | NULL   | YES  | BTREE      |         |
+| comclien |          1 | idx_comclien_4 |            1 | c_codiclien | A         |           2 |     NULL | NULL   | YES  | BTREE      |         |
++----------+------------+----------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+
+
+*/
+
+/*O MySQL ainda possui outros tipos de índices. Outro mais
+comum é o unique index . Como o nome já diz, é um índice
+único que também serve para restringir a duplicação de dados. Ao
+criá-lo em uma coluna, você está dizendo ao SGBD que ele não
+pode aceitar registros duplicados lá. Portanto, tenha muito cuidado
+se for escolher trabalhar com esse tipo de índice.
+Por exemplo, se criarmos um unique index na tabela de
+produtos no campo de c_codiprodu , não conseguiremos
+cadastrar dois deles com o mesmo código. Porém, é muito comum
+termos essa situação por conta de fornecedores diferentes. Analise
+bem sua regra de negócio antes de sair criando índices únicos. */
+
+/* Poderíamos criar um índice desse em nossa tabela de vendas
+no campo c_codivenda , para que não haja nenhum código
+duplicado. */
+
+alter table comvenda add unique index idx_comvenda_1(c_codivenda);
+
+show indexes from comvenda;
+
+/*
+
++----------+------------+----------------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+
+| Table    | Non_unique | Key_name             | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment |
++----------+------------+----------------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+
+| comvenda |          0 | PRIMARY              |            1 | n_numevenda | A         |          20 |     NULL | NULL   |      | BTREE      |         |
+| comvenda |          0 | idx_comvenda_1       |            1 | c_codivenda | A         |          20 |     NULL | NULL   | YES  | BTREE      |         |
+| comvenda |          1 | fk_comprodu_comforne |            1 | n_numeforne | A         |           4 |     NULL | NULL   |      | BTREE      |         |
+| comvenda |          1 | fk_comprodu_comvende |            1 | n_numevende | A         |           4 |     NULL | NULL   |      | BTREE      |         |
+| comvenda |          1 | fk_comvenda_comclien |            1 | n_numeclien | A         |          20 |     NULL | NULL   |      | BTREE      |         |
++----------+------------+----------------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+
+
+*/
+
+/* Caso você tenha criado um index incorretamente, você
+poderá excluí-lo utilizando a seguinte instrução: */
+
+alter table comvenda drop index idx_comvenda_1;
+
+/* VIEWS */
+
+/* Sabemos também que, toda vez que reescrevemos uma mesma
+consulta, conseguiremos os mesmos resultados de antes. Isso é
+uma tarefa séria, já que existem diversas formas de se escrever uma
+mesma consulta. Para amenizar essa situação e também pensando
+em performance e tempo economizado, podemos rapidamente
+transformar estas consultas em uma view . A partir disso, ela
+permanecerá armazenada no servidor de bancos de dados em
+forma de tabela para que possamos consultá-la todas as vezes que
+precisarmos, sem ter que reescrevê-la.
+Uma view é um objeto que pertence a um banco de dados,
+definida e baseada em declarações selects , retornando uma
+determinada visualização de dados de uma ou mais tabelas. Esses
+objetos são chamados, por vezes, de virtual tables, formados a
+partir de outras tabelas que, por sua vez, são denominadas de based
+tables ou ainda outras Views . Em alguns casos, estas são
+atualizáveis e podem ser alvos de declaração insert , update e
+delete , que, na verdade, modificam sua based tables. */
+
+/* Os benefícios de sua utilização, além dos já salientados, são:
+- Uma view pode ser utilizada, por exemplo, para retornar
+um valor de apenas uma coluna na tabela;
+
+- Também para promover restrições em dados para
+aumentar sua segurança e definir políticas de acesso em
+nível de tabela e coluna;
+
+- Podem ser configuradas para mostrar colunas diferentes
+para diferentes usuários do banco de dados;
+
+- Também podem ser usadas com um conjunto de tabelas
+unido a outros conjuntos de tabelas com a utilização de
+joins . */
+
+/* CRIANDO VIEWS */
+
+/* Uma consulta que já utilizamos algumas vezes durante o livro
+foi a da tabela de clientes junto com a de vendas. Sabendo disso,
+vamos criar uma view para essa consulta, para que possamos
+utilizar posteriormente, em vez de escrevê-la todas as vezes.
+Observe que sua criação será com create or replace , pois, se
+você quiser criá-la novamente, apenas precisa executar o código no
+SGBD e, assim, a nova view contendo o mesmo nome será
+reelaborada. Neste exemplo, eu a chamei de clientes_vendas .*/
+
+create or replace view clientes_vendas as
+select c_razaclien,
+c_nomeclien,
+c_cnpjclien,
+c_codivenda,
+n_totavenda,
+d_datavenda
+from comclien,
+comvenda
+where comclien.n_numeclien = comvenda.n_numeclien order by 1;
+
+/* Dessa maneira, podemos fazer uma consulta utilizando agora a
+nossa view , em vez da consulta convencional. */
+
+select * from clientes_vendas;
+
+/*
+
++------------------------+-----------------------+--------------------+-------------+-------------+-------------+
+| c_razaclien            | c_nomeclien           | c_cnpjclien        | c_codivenda | n_totavenda | d_datavenda |
++------------------------+-----------------------+--------------------+-------------+-------------+-------------+
+| AARONSON FURNITURE LTD | AARONSON FURNITURE    | 17.807.928/0001-85 | 1           |    25141.02 | 2015-01-01  |
+| AARONSON FURNITURE LTD | AARONSON FURNITURE    | 17.807.928/0001-85 | 10          |    20315.07 | 2015-01-02  |
+| AARONSON FURNITURE LTD | AARONSON FURNITURE    | 17.807.928/0001-85 | 11          |     8704.55 | 2015-01-01  |
+| AUTO WORKS LTDA        | AUTO WORKS            | 08.271.985/0001-00 | 9           |    13508.34 | 2015-01-01  |
+| AUTO WORKS LTDA        | AUTO WORKS            | 08.271.985/0001-00 | 19          |     4650.64 | 2015-01-01  |
+| AUTO WORKS LTDA        | AUTO WORKS            | 08.271.985/0001-00 | 20          |     6975.96 | 2015-01-02  |
+| GREAT AMERICAN MUSIC   | GREAT AMERICAN MUSIC  | 11.880.735/0001-73 | 4           |     8704.55 | 2015-01-04  |
+| HUGHES MARKETS LTDA    | HUGHES MARKETS        | 04.728.160/0001-02 | 8           |    15380.47 | 2015-01-04  |
+| HUGHES MARKETS LTDA    | HUGHES MARKETS        | 04.728.160/0001-02 | 18          |    15465.69 | 2015-01-04  |
+| KELSEY  NEIGHBOURHOOD  | KELSEY  NEIGHBOURHOOD | 05.202.361/0001-34 | 3           |    16257.32 | 2015-01-03  |
+| KELSEY  NEIGHBOURHOOD  | KELSEY  NEIGHBOURHOOD | 05.202.361/0001-34 | 13          |     4967.84 | 2015-01-03  |
+| KELSEY  NEIGHBOURHOOD  | KELSEY  NEIGHBOURHOOD | 05.202.361/0001-34 | 14          |     7451.26 | 2015-01-04  |
+| LIFE PLAN COUNSELLING  | LIFE PLAN COUNSELLING | 75.185.467/0001-52 | 5           |    13078.81 | 2015-01-01  |
+| LIFE PLAN COUNSELLING  | LIFE PLAN COUNSELLING | 75.185.467/0001-52 | 15          |    10747.36 | 2015-01-01  |
+| LITTLER  LTDA          | LITTLER               | 55.643.605/0001-92 | 2           |    12476.58 | 2015-01-02  |
+| LITTLER  LTDA          | LITTLER               | 55.643.605/0001-92 | 12          |    11198.05 | 2015-01-02  |
+| PRACTI-PLAN LTDA       | PRACTI-PLAN           | 32.518.106/0001-78 | 6           |     6079.19 | 2015-01-02  |
+| PRACTI-PLAN LTDA       | PRACTI-PLAN           | 32.518.106/0001-78 | 16          |    13502.34 | 2015-01-02  |
+| SPORTSWEST LTDA        | SPORTSWEST            | 83.175.645/0001-92 | 7           |     7451.26 | 2015-01-03  |
+| SPORTSWEST LTDA        | SPORTSWEST            | 83.175.645/0001-92 | 17          |    22222.99 | 2015-01-03  |
++------------------------+-----------------------+--------------------+-------------+-------------+-------------+
+
+*/
+
+/* Atualizando Views */
+
+/* Para você conseguir inserir, atualizar ou deletar um registro
+através de uma view , ela não pode possuir joins e funções
+agregadoras, como o group by . Vamos criar uma para a tabela
+de produtos. */
+
+create or replace view produtos as
+select n_numeprodu,
+c_codiprodu,
+c_descprodu,
+n_valoprodu,
+c_situprodu,
+n_numeforne
+from comprodu;
+
+/* Agora conseguiremos executar operações com ela. Da mesma
+maneira que aprendemos a fazer insert na tabela, faremos
+utilizando na view . Vamos exemplificar: */
+
+insert into produtos values (6,'0006','SMART WATCH','2412.98','A',1);
+
+/* O mesmo vale para alteração e exclusão de registros. */
+
+update produtos set n_valoprodu = '1245.99' where n_numeprodu = 6;
+
+commit;
+
+delete from produtos where n_numeprodu = 6;
+
+commit;
+
+/* Se você criou uma view que não utilizará novamente e
+precisa ser excluída, você deve fazer como se fosse deletar uma
+tabela. */
+
+drop view produtos;
+
+/*CRIANDO BACKUPS */
+
+/* Vamos criar um backup de todas as tabelas do banco do nosso
+projeto. Este criará um arquivo com a extensão .sql , que vai
+conter os scripts de criação e inserção de registros das tabelas
+exportadas. Vamos abrir o console e navegar até a pasta bin da
+instalação do MySQL.*/
+
+mysql\bin> mysqldump -u root -p
+comercial > c:/bkp_tables_views.sql
+
+/* Agora, abra o arquivo gerado em um editor de texto e você
+verá que o backup que foi gerado contém apenas as tabelas e os
+inserts . Mas e nossas procedures , functions e triggers ?
+Para exportá-los juntos ao nosso arquivo, devemos especificar que
+também as queremos nessa exportação, com as instruções --
+routines para incluir a exportação das procedures e
+functions , e --triggers para incluir as triggers . */
+
+mysql\bin> mysqldump -u root -p --routines --triggers
+comercial > c:/bkp_full.sql
+
+/* Você também tem a possibilidade de exportar apenas uma ou
+várias tabelas. Você só precisa descrever quais delas você quer após
+o nome do banco de dados. */
+
+mysql\bin> mysqldump -u root -p comercial
+comclien > c:/bkp_clien.sql
+
+/* Até agora, nós criamos apenas um banco de dados. No entanto,
+há a possibilidade da criação de vários, como vimos durante a
+criação do nosso projeto. Aprendemos também como podemos
+exportar apenas um banco; mas também é possível criar um
+comando que exportará todos os bancos em apenas um arquivo. */
+
+mysql\bin> mysqldump -u root -p --all-databases > c:/bkp_all.sql
+
+/* IMPORTANDO BACKUPS */
+
+/* Para a importação, seguiremos passos parecidos com a
+exportação. Porém, antes, vamos criar um segundo banco de dados
+chamado comercial2 . Nele, não nos preocuparemos com
+usuários, uma vez que utilizamos o usuário root para a
+exportação e também usaremos o arquivo bkp_full.sql que
+geramos na exportação. */
+
+create database comercial2;
+
+/* Agora, vamos abrir o console e utilizar o comando: */
+
+mysql\bin> mysql -h localhost -u root -p -d
+comercial2 < c:/bkp_full.sql
+
+/* Volte ao console do MySQL para testar se a importação foi
+feita com sucesso. Escolha o banco comercial2 para utilizar e dê
+o comando para listar as tabelas. Se você seguiu todas as
+instruções, as listas delas deverão ser mostradas. */
+
+use comercial2;
+show tables;
+
+/*ALGUNS COMANDOS AVANCADOS */
+
+/* EXPORTAR E IMPORTAR CONSULTAS PARA ARQUIVOS .CSV E .TXT */
+
+/* EXPORTACAO*/
+
+/* Como exemplo, vamos salvar todos os registros da tabela de
+clientes em um arquivo .txt . Na exportação, diremos para o
+SGBD que queremos salvar o arquivo na unidade c:/ com o
+nome de lista_clientes.txt . Queremos separar cada registro
+por vírgula e limitar cada coluna com aspas simples. */
+
+select * from comclien
+into outfile 'c:/lista_clientes.txt'
+fields terminated by ','
+enclosed by '''';
+
+/* Para você criar um arquivo .csv , apenas troque no código a
+extensão. */
+
+/* IMPORTACAO*/
+
+/* A importação via arquivo pode ser muito útil em ações de
+popular dados em um banco de dados ou importá-los de outros
+sistemas ou bancos, como descrevi anteriormente. Da mesma
+forma que a exportação, ela não vai depender de uma aplicação ou
+de uma ferramenta. */
+
+create table comuser(
+n_numeuser int not null auto_increment,
+n_nomeuser varchar(100),
+n_nascuser date,
+primary key(n_numeuser));
+
+/* Em nosso repositório, deixei um arquivo pronto para você
+utilizar nesta importação, o import_user.txt . Você mesmo
+pode também criar um arquivo com os registros, seguindo o
+padrão em que eles estão dispostos. Ele deve possuir as colunas que
+você quer popular. */
+
+/* Em nosso código, vamos descrever o nome do arquivo que
+queremos importar. Precisamos que ele esteja em alguma pasta em
+nosso computador. Coloque-o no diretório c:/ ou onde preferir,
+contanto que não se esqueça de alterar o local no código. */
+
+/* Além de informarmos qual será o arquivo importado, devemos
+também dizer para qual tabela queremos fazer a importação.
+Sabendo disso, vamos indicar em qual delas queremos inserir os
+registros e com qual caractere eles estão separados e limitados, da
+mesma maneira como os exportamos. */
+
+load data infile 'c:/import_user.txt'
+into table comuser
+fields terminated by ','
+enclosed by '''';
+
+/* LOCALIZAR UMA COLUNA NO SEU BANCO */
+
+/* Algo muito útil é uma consulta para saber a quais tabelas um
+campo pertence. Particularmente, utilizo-a todos os dias, uma vez
+que trabalho em um cenário de mais de 1000 tabelas e fica difícil
+decorá-las. Por exemplo, em nosso projeto, criamos a coluna
+n_numeclien em duas tabelas. Desta maneira, é mais fácil saber
+em quais tabelas estão. Porém, como sempre friso, pense no longo
+prazo e tenha em mente que seu projeto crescerá. 
+
+Cada SGBD possui tabelas, nas quais são armazenados os
+objetos criados, tais como: outras tabelas, views , procedures ,
+triggers etc. No MySQL, temos o information_schema , que é
+uma base de dados que possui as tabelas de metadados. São
+informações sobre o que temos criados no banco. A tabela que
+armazena as informações das outras criadas no SGBD é a
+columns . Para exemplificar, vamos utilizar o nosso banco de
+dados comercial e pesquisar quais delas possuem o campo
+n_numeclien . */
+
+select table_schema Banco_Dados,
+table_name tabela,
+column_name nome_coluna
+from information_schema.columns
+where table_schema = 'comercial'
+and column_name = 'n_numeclien';
+
+/* 
+
++-------------+--------------+-------------+
+| Banco_Dados | tabela       | nome_coluna |
++-------------+--------------+-------------+
+| comercial   | comclien     | n_numeclien |
+| comercial   | comclien_bkp | n_numeclien |
+| comercial   | comcontato   | n_numeclien |
+| comercial   | comvenda     | n_numeclien |
++-------------+--------------+-------------+
+
+*/
+
+/* Algo que faço para otimizar o mais meu tempo é salvar essa
+consulta em um arquivo com a extensão .sql e apenas chamá-la
+pelo prompt, em vez de digitá-la toda vez ou copiar e colá-la. Isso é
+algo que você pode fazer com todas as que são constantemente
+utilizadas. 
+
+A primeira coisa que devemos fazer é salvar a nossa consulta.
+Porém, antes vamos substituir o nome do banco e o da coluna que
+buscamos anteriormente para que essas variáveis sejam inseridas
+antes de executá-la. No lugar do nome do banco, vamos colocar
+@banco e no da coluna, @coluna . O símbolo de arroba diz para
+o SGBD que serão variáveis que serão recebidas em execução.
+Nossa consulta ficará assim: */
+
+select table_schema Banco_Dados,
+table_name tabela,
+column_name nome_coluna
+from information_schema.columns
+where table_schema = @banco
+and column_name = @coluna;
+
+/* Como possuo várias consultas que são utilizadas
+frequentemente, criei uma pasta chamada scripts no diretório
+c:\ para armazenar os seus arquivos. Vamos nomeá-la como
+busca_campo.sql . Agora, abra o console do MySQL para
+atribuirmos os valores para as variáveis e, em seguida, fazermos a
+chamada */
+
+set @banco = 'comercial';
+set @coluna = 'n_numeclien';
+source c:/scripts/campo_tabela.sql;
+
+/* Você pode utilizar a criação de arquivos para qualquer tipo de
+consulta. Acho interessante você utilizar esse recurso para os
+comandos que aprendemos no início desse capítulo, pois seu uso
+ficará mais ágil. Em nosso repositório, há uma pasta scripts , na
+qual existem vários arquivos com as consultas que já utilizamos,
+inclusive uma chamada info_banco.sql . Ele, ao ser executado,
+trará várias informações sobre o seu banco, tais como: quantidade
+de tables, de views e outros objetos. Baixe e utilize-o em seu dia a
+dia! */
+	 
