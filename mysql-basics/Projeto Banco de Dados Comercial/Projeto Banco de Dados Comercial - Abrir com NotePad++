@@ -5,7 +5,7 @@ Devemos entrar na MySQL 8.0 Command Line Client (prompt de Comando do MySQL) */
 
 /* Comando para criação de Usuario: create user (nome do usuario)% identified by '(senha)';*/
 
-create user usermysql@'%' identified by 'mysqlexample';
+create user usermysql@'%' identified by 'cursomysql';
 
 /* Quando utilizamos o % em nosso código, estamos dizendo que
 este usuário poderá acessar o nosso banco a partir de qualquer
