@@ -1,5 +1,42 @@
 /* https://github.com/viniciuscdes/mysqlbook/blob/master/popula_banco.sql */
 
+/* create tables */
+
+create table comclien(n_numeclien int not null auto_increment, c_codiclien varchar(10),c_nomeclien varchar(50),c_razaclien varchar(50),d_dataclien date,c_cnpjclien varchar(20),c_foneclien varchar(15),c_cidaclien varchar(50), c_estaclien varchar(100), primary key (n_numeclien));
+ 
+create table comforne(n_numeforne int not null auto_increment,c_codiforne varchar(10),c_nomeforne varchar(50),c_razaforne varchar(50),c_foneforne varchar(15), primary key(n_numeforne));
+
+create table comprodu(n_numeprodu int not null auto_increment,c_codiprodu varchar(20),c_descprodu varchar(100),n_valoprodu float(10,2),c_situprodu varchar(1),n_numeforne int,primary key(n_numeprodu)); 
+
+create table comvenda(n_numevenda int not null auto_increment,c_codivenda varchar(10),n_numeclien int not null,n_numeforne int not null,n_numevende int,n_valovenda float(10,2),n_descvenda float(10,2),n_totavenda float(10,2),d_datavenda date, primary key(n_numevenda)); 
+
+/* will be create a column n_vcomvenda FLOAT (10,2) further in comvenda table */
+
+create table comvende(n_numevende int not null auto_increment,c_codivende varchar(10),c_nomevende varchar(50),c_razavende varchar(50),c_fonevende varchar(20),n_porcvende float(10,2),primary key(n_numevende));
+
+create table comivenda(n_numeivenda int not null auto_increment,n_numevenda  int not null,n_numeprodu  int not null,n_valoivenda float(10,2),n_qtdeivenda int,n_descivenda float(10,2),primary key(n_numeivenda));
+
+/* create foreign keys */ 
+
+alter table comvenda add constraint fk_comprodu_comforne foreign key(n_numeforne) references comforne(n_numeforne) on delete no action on update no action;
+
+alter table comvenda add constraint fk_comprodu_comvende foreign key(n_numevende) references comvende(n_numevende) on delete no action on update no action;
+
+alter table comvenda add constraint fk_comvenda_comclien foreign key(n_numeclien) references comclien(n_numeclien) on delete no action on update no action;
+
+alter table comivenda add constraint fk_comivenda_comprodu foreign key(n_numeprodu) references comprodu (n_numeprodu) on delete no action on update no action;
+
+alter table comprodu add constraint fk_comprodu_comfornea foreign key(n_numeforne) references comforne (n_numeforne) on delete no action on update no action;
+
+/* describe tables */
+
+desc comclien;
+desc comforne;
+desc comprodu;
+desc comvenda;
+desc comvende;
+desc comivenda;
+
 /* client table example */
 
 insert into comclien values(	1 	,'0001','AARONSON FURNITURE'   	    ,'AARONSON FURNITURE LTD'	,'2015-02-17 23:14:50',     '17.807.928/0001-85', '(21) 8167-6584' ,'QUEIMADOS'             ,'RJ' );
@@ -52,7 +89,7 @@ insert into comvenda values(16	    ,	'16'	,	6	,	2	,	2 ,  '13502.34',	0	,	'13502.
 insert into comvenda values(17	    ,	'17'	,	7	,	1	,	1 ,  '22222.99',	0	,	'22222.99'  ,  '2015-01-03'	 );
 insert into comvenda values(18	    ,	'18'	,	8	,	2	,	2 ,  '15465.69',	0	,	'15465.69'  ,  '2015-01-04'	 );
 insert into comvenda values(19	    ,	'19'	,	9	,	1	,	1 ,  '4650.64',	    0	,	'4650.64'   ,  '2015-01-01'	 );
-insert into comvenda values(20	, '20'	, 9	, 2	, 2 , '6975.96', 0	, '6975.96' , '2015-01-02'	);
+insert into comvenda values(20	    ,   '20'	,   9	,   2	,   2 ,  '6975.96',     0	,   '6975.96'   ,  '2015-01-02'	);
 
 /* order item example */
 
