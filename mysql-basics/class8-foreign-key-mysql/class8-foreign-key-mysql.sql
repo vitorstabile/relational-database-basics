@@ -52,4 +52,9 @@ alter table comivenda add constraint fk_comivenda_comvenda
 		references comvenda (n_numevenda)
 			on delete no action
 			on update no action;
-		
+			
+/* To show all constrains */
+
+/* - QUERY:	select * from information_schema.table_constraints where constraint_schema = 'YOUR_DATABASE_NAME'; */
+
+select * from information_schema.table_constraints where constraint_schema = 'example';
